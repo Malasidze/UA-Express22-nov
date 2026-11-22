@@ -1,0 +1,2 @@
+// Code | IsPercentage | Value | ExpiresAt | OrderID
+WELCOME10 | true | 10 | 2027-12-31 23:59 | 

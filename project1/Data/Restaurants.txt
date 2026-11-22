@@ -1,0 +1,2 @@
+// RestaurantID | Name | IsOpen
+R01 | FoodExpress Kitchen | true

@@ -1,0 +1,3 @@
+// ItemID | RestaurantID | Type | Name | Category | Details | Price | IsAvailable
+P01 | R01 | Pizza | Margherita | Pizza | Large;Thin | 24.00 ₾ | true
+D01 | R01 | Drink | Lemonade | Drink | 500ml | 5.50 ₾ | true
