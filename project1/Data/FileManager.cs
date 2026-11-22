@@ -35,7 +35,7 @@ namespace FoodExpress.Data
                 EnsureFile(MenuItemsFile, "// ItemID | RestaurantID | Type | Name | Category | Details | Price | IsAvailable\nP01 | R01 | Pizza | Margherita | Pizza | Large;Thin | 24.00 ₾ | true\nD01 | R01 | Drink | Lemonade | Drink | 500ml | 5.50 ₾ | true\n");
                 EnsureFile(OrdersFile, "// OrderID | UserID | CreatedAt | Address | Subtotal | DeliveryFee | Discount | Total | Status\nO901 | 1001 | 2026-07-27 18:40 | Tbilisi, Chavchavadze 12 | 29.50 ₾ | 4.00 ₾ | 0.00 ₾ | 33.50 ₾ | Confirmed\n");
                 EnsureFile(OrderItemsFile, "// OrderID | ItemID | Name | Quantity | UnitPrice | LineTotal\nO901 | P01 | Margherita | 1 | 24.00 ₾ | 24.00 ₾\nO901 | D01 | Lemonade | 1 | 5.50 ₾ | 5.50 ₾\n");
-                EnsureFile(UsersFile, "// ID | Username | Password | Email | Role\n1001 | ana_food | pass123 | ana@example.com | customer\n9001 | food_admin | secureAdmin | admin@foodexpress.ge | admin\n");
+                EnsureFile(UsersFile, "// ID | Username | PasswordHash | Email | Role\n1001 | ana_food | $2a$11$4sSc0vrOkbgkYnr0vVuobep1fs7QmJfKSrv7T3UZMudhth1UsZsiO | ana@example.com | customer\n9001 | food_admin | $2a$11$VA7kUT8CeyG6kHrBWRlX2OU.P6qeKgaskZWY98uf6b5DBOrRiR8SO | admin@foodexpress.ge | admin\n");
                 EnsureFile(CartsFile, "// UserID | ItemID | Quantity\n");
                 EnsureFile(RestaurantsFile, "// RestaurantID | Name | IsOpen\nR01 | FoodExpress Kitchen | true\n");
                 EnsureFile(PromoCodesFile, "// Code | IsPercentage | Value | ExpiresAt | OrderID\nWELCOME10 | true | 10 | 2027-12-31 23:59 | \n");

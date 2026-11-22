@@ -181,8 +181,17 @@ namespace FoodExpress.Menu
         {
             try
             {
-                string orderId = ReadText("Order ID to cancel: ");
-                _orders.CancelOrder(customer, orderId);
+                IReadOnlyList<Order> orders = _orders.GetMyOrders(customer);
+                if (orders.Count == 0)
+                {
+                    Console.WriteLine("You have no orders to cancel.");
+                    return;
+                }
+
+                int selectedOrder = Choose("Select an order to cancel", orders
+                    .Select((order, index) => (index + 1, $"{order.Id} | {order.CreatedAt:g} | {order.Status} | {order.Total:0.00} ₾ | {order.Address}"))
+                    .ToArray());
+                _orders.CancelOrder(customer, orders[selectedOrder - 1].Id);
                 Console.WriteLine("Order cancelled.");
             }
             catch (Exception ex) when (ex is not EndOfInputException)

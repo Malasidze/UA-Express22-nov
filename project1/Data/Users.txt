@@ -1,3 +1,3 @@
-// ID | Username | Password | Email | Role
-1001 | ana_food | pass123 | ana@example.com | customer
-9001 | food_admin | secureAdmin | admin@foodexpress.ge | admin
+// ID | Username | PasswordHash | Email | Role
+1001 | ana_food | $2a$11$4sSc0vrOkbgkYnr0vVuobep1fs7QmJfKSrv7T3UZMudhth1UsZsiO | ana@example.com | customer
+9001 | food_admin | $2a$11$VA7kUT8CeyG6kHrBWRlX2OU.P6qeKgaskZWY98uf6b5DBOrRiR8SO | admin@foodexpress.ge | admin
