@@ -7,5 +7,6 @@ namespace FoodExpress.Repositories
     {
         IReadOnlyList<Restaurant> GetAll();
         Restaurant? GetById(string id);
+        void Save(Restaurant restaurant);
     }
 }

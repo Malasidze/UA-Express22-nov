@@ -26,6 +26,7 @@ namespace FoodExpress.Models
         public string Category { get; set; }
         public decimal Price { get; set; }
         public bool IsAvailable { get; set; }
+        public virtual string TypeName => GetType().Name;
         public abstract string GetDetails();
         public virtual decimal GetFinalPrice() => Price;
 

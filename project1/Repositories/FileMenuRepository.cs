@@ -49,7 +49,7 @@ namespace FoodExpress.Repositories
                         "pizza" => CreatePizza(fields, price, available),
                         "drink" => new Drink(fields[0], fields[1], fields[3], fields[4], price, fields[5], available),
                         "dessert" => new Dessert(fields[0], fields[1], fields[3], fields[4], price, fields[5], available),
-                        _ => throw new FormatException("Unknown menu item type.")
+                        _ => new CustomMenuItem(fields[0], fields[1], fields[2], fields[3], fields[4], price, fields[5], available)
                     };
                     _items.Add(item);
                 }
@@ -69,6 +69,6 @@ namespace FoodExpress.Repositories
 
         private void Persist() => _files.WriteLines(FileManager.MenuItemsFile,
             new[] { "// ItemID | RestaurantID | Type | Name | Category | Details | Price | IsAvailable" }
-            .Concat(_items.Select(item => $"{item.Id} | {item.RestaurantId} | {item.GetType().Name} | {item.Name} | {item.Category} | {item.GetDetails()} | {FileUserRepository.Money(item.Price)} | {item.IsAvailable.ToString().ToLowerInvariant()}")));
+                .Concat(_items.Select(item => $"{item.Id} | {item.RestaurantId} | {item.TypeName} | {item.Name} | {item.Category} | {item.GetDetails()} | {FileUserRepository.Money(item.Price)} | {item.IsAvailable.ToString().ToLowerInvariant()}")));
     }
 }

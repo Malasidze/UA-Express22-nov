@@ -19,6 +19,18 @@ namespace FoodExpress.Services
             return Math.Min(subtotal, discount);
         }
 
+        public void Add(Admin admin, string code, bool isPercentage, decimal value, DateTime expiresAt)
+        {
+            ArgumentNullException.ThrowIfNull(admin);
+            code = code.Trim().ToUpperInvariant();
+            if (string.IsNullOrWhiteSpace(code)) throw new ValidationException("Promo code is required.");
+            if (expiresAt <= DateTime.Now) throw new ValidationException("Promo code expiration must be in the future.");
+            if (_promos.GetByCode(code) is not null) throw new ValidationException("That promo code already exists.");
+            _promos.Save(new PromoCode(code, isPercentage, value, expiresAt));
+        }
+
+        public IReadOnlyList<PromoCode> GetAll() => _promos.GetAll();
+
         public void MarkUsed(string code, string orderId)
         {
             PromoCode promo = FindValid(code);

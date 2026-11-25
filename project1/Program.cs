@@ -36,11 +36,12 @@ namespace FoodExpress
                 EmailVerificationService verificationService = new(emailService, users, logger);
                 CartService cartService = new(cartRepository, menuRepository);
                 PromoCodeService promoService = new(promoRepository);
+                 RestaurantService restaurantService = new(restaurants);
                 OrderService orderService = new(orderRepository, cartRepository, promoService, emailService, logger);
                 MenuService menuService = new(menuRepository);
                 MenuQueryService queryService = new(menuRepository, orderRepository);
                 CustomerMenu customerMenu = new(queryService, menuRepository, restaurants, cartService, orderService, logger);
-                AdminMenu adminMenu = new(menuRepository, orderRepository, restaurants, menuService, orderService, queryService, logger);
+                 AdminMenu adminMenu = new(menuRepository, orderRepository, restaurants, menuService, restaurantService, promoService, orderService, queryService, logger);
                 MainMenu mainMenu = new(authService, verificationService, users, customerMenu, adminMenu, logger);
 
                 while (true)

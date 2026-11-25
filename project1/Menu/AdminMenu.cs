@@ -14,16 +14,20 @@ namespace FoodExpress.Menu
         private readonly IOrderRepository _ordersRepository;
         private readonly IRestaurantRepository _restaurants;
         private readonly MenuService _menuService;
+        private readonly RestaurantService _restaurantService;
+        private readonly PromoCodeService _promoService;
         private readonly OrderService _orders;
         private readonly MenuQueryService _queries;
         private readonly LoggerService _logger;
 
-        public AdminMenu(IMenuRepository items, IOrderRepository ordersRepository, IRestaurantRepository restaurants, MenuService menuService, OrderService orders, MenuQueryService queries, LoggerService logger)
+        public AdminMenu(IMenuRepository items, IOrderRepository ordersRepository, IRestaurantRepository restaurants, MenuService menuService, RestaurantService restaurantService, PromoCodeService promoService, OrderService orders, MenuQueryService queries, LoggerService logger)
         {
             _items = items;
             _ordersRepository = ordersRepository;
             _restaurants = restaurants;
             _menuService = menuService;
+            _restaurantService = restaurantService;
+            _promoService = promoService;
             _orders = orders;
             _queries = queries;
             _logger = logger;
@@ -34,20 +38,26 @@ namespace FoodExpress.Menu
             while (true)
             {
                 int choice = Choose($"Admin: {admin.Username}",
-                    (1, "Manage menu"), (2, "View active orders"), (3, "Advance order status"),
-                    (4, "Statistics"), (0, "Logout"));
+                    (1, "Manage menu"), (2, "Manage restaurants"), (3, "Manage promo codes"),
+                    (4, "View active orders"), (5, "Advance order status"), (6, "Statistics"), (0, "Logout"));
                 switch (choice)
                 {
                     case 1:
                         ManageMenu(admin);
                         break;
                     case 2:
-                        ViewActiveOrders(admin);
+                        ManageRestaurants(admin);
                         break;
                     case 3:
-                        AdvanceOrder(admin);
+                        ManagePromoCodes(admin);
                         break;
                     case 4:
+                        ViewActiveOrders(admin);
+                        break;
+                    case 5:
+                        AdvanceOrder(admin);
+                        break;
+                    case 6:
                         ShowStatistics();
                         break;
                     case 0:
@@ -97,7 +107,7 @@ namespace FoodExpress.Menu
             string id = ReadText("New item ID: ");
             string restaurantId = ReadText($"Restaurant ID ({string.Join(", ", _restaurants.GetAll().Select(item => item.Id))}): ");
             if (_restaurants.GetById(restaurantId) is null) throw new ValidationException("Restaurant was not found.");
-            string kind = ReadText("Type (Pizza, Drink, Dessert): ");
+            string kind = ReadText("Type (Pizza, Drink, Dessert, or your restaurant-specific type): ");
             string name = ReadText("Name: ");
             string category = ReadText("Category: ");
             decimal price = ReadDecimal("Price: ");
@@ -106,10 +116,72 @@ namespace FoodExpress.Menu
                 "pizza" => new Pizza(id, restaurantId, name, category, price, ReadText("Size: "), ReadText("Dough: ")),
                 "drink" => new Drink(id, restaurantId, name, category, price, ReadText("Volume (e.g. 500ml): ")),
                 "dessert" => new Dessert(id, restaurantId, name, category, price, ReadText("Portion size: ")),
-                _ => throw new ValidationException("Choose Pizza, Drink, or Dessert.")
+                _ => new CustomMenuItem(id, restaurantId, kind.Trim(), name, category, price, ReadText("Details: "))
             };
             _menuService.Add(admin, item);
             Console.WriteLine("Menu item added.");
+        }
+
+        private void ManageRestaurants(Admin admin)
+        {
+            while (true)
+            {
+                Console.WriteLine("\nRestaurants:");
+                foreach (Restaurant restaurant in _restaurants.GetAll())
+                    Console.WriteLine($"{restaurant.Id} | {restaurant.Name} | {(restaurant.IsOpen ? "open" : "closed")}");
+
+                try
+                {
+                    int choice = Choose("Manage restaurants", (1, "Add restaurant"), (2, "Edit restaurant"), (0, "Back"));
+                    switch (choice)
+                    {
+                        case 1:
+                            _restaurantService.Add(admin, ReadText("Restaurant ID: "), ReadText("Restaurant name: "), ReadYesNo("Open? (y/n): ", true));
+                            Console.WriteLine("Restaurant added.");
+                            break;
+                        case 2:
+                            string id = ReadText("Restaurant ID to edit: ");
+                            Restaurant restaurant = _restaurants.GetById(id) ?? throw new ValidationException("Restaurant was not found.");
+                            string name = ReadText($"Name [{restaurant.Name}]: ");
+                            _restaurantService.Update(admin, id, string.IsNullOrWhiteSpace(name) ? restaurant.Name : name, ReadYesNo($"Open? (y/n) [{(restaurant.IsOpen ? "y" : "n")}]: ", restaurant.IsOpen));
+                            Console.WriteLine("Restaurant updated.");
+                            break;
+                        case 0:
+                            return;
+                    }
+                }
+                catch (Exception ex) when (ex is not EndOfInputException)
+                {
+                    ShowError(ex);
+                }
+            }
+        }
+
+        private void ManagePromoCodes(Admin admin)
+        {
+            while (true)
+            {
+                Console.WriteLine("\nPromo codes:");
+                foreach (PromoCode promo in _promoService.GetAll())
+                    Console.WriteLine($"{promo.Code} | {(promo.IsPercentage ? $"{promo.Value:0.##}%" : $"{promo.Value:0.00} ₾")} | expires {promo.ExpiresAt:g} | {(promo.IsUsed ? $"used by {promo.OrderId}" : "available")}");
+
+                try
+                {
+                    int choice = Choose("Manage promo codes", (1, "Add promo code"), (0, "Back"));
+                    if (choice == 0) return;
+
+                    string code = ReadText("Code: ");
+                    bool isPercentage = ReadYesNo("Percentage discount? (y/n): ", true);
+                    decimal value = ReadDecimal(isPercentage ? "Percentage (1-100): " : "Amount: ");
+                    DateTime expiresAt = ReadDateTime("Expires (yyyy-MM-dd HH:mm): ");
+                    _promoService.Add(admin, code, isPercentage, value, expiresAt);
+                    Console.WriteLine("Promo code added.");
+                }
+                catch (Exception ex) when (ex is not EndOfInputException)
+                {
+                    ShowError(ex);
+                }
+            }
         }
 
         private void EditItem(Admin admin)
@@ -204,7 +276,7 @@ namespace FoodExpress.Menu
         private static void PrintItems(IEnumerable<MenuItem> items)
         {
             foreach (MenuItem item in items)
-                Console.WriteLine($"{item.Id} | {item.RestaurantId} | {item.GetType().Name} | {item.Name} | {item.Category} | {item.GetDetails()} | {item.Price:0.00} ₾ | {(item.IsAvailable ? "available" : "disabled")}");
+                Console.WriteLine($"{item.Id} | {item.RestaurantId} | {item.TypeName} | {item.Name} | {item.Category} | {item.GetDetails()} | {item.Price:0.00} ₾ | {(item.IsAvailable ? "available" : "disabled")}");
         }
 
         private static void PrintOrder(Order order) => Console.WriteLine($"{order.Id} | user {order.UserId} | {order.CreatedAt:g} | {order.Status} | {order.Total:0.00} ₾ | {order.Address}");
@@ -220,6 +292,15 @@ namespace FoodExpress.Menu
         }
 
         private static decimal ParseDecimal(string text) => decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal value) ? value : throw new ValidationException("Enter a valid decimal price.");
+
+        private static DateTime ReadDateTime(string prompt)
+        {
+            while (true)
+            {
+                if (DateTime.TryParseExact(ReadText(prompt), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime value)) return value;
+                Console.WriteLine("Enter a date in yyyy-MM-dd HH:mm format.");
+            }
+        }
 
         private static bool ReadYesNo(string prompt, bool defaultValue)
         {
